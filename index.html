@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>DTF Halftone Pro</title>
+    <style>
+        :root {
+            --bg-color: #323232;
+            --panel-bg: #535353;
+            --text-color: #e0e0e0;
+            --accent-color: #2680eb;
+            --border-color: #252525;
+            --input-bg: #2b2b2b;
+        }
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            margin: 0;
+            padding: 15px;
+            font-size: 12px;
+        }
+        .section {
+            background-color: var(--panel-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            padding: 10px;
+            margin-bottom: 12px;
+        }
+        .row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+        label { font-weight: 600; margin-bottom: 4px; display: block; }
+        input[type="number"], select {
+            background-color: var(--input-bg);
+            color: var(--text-color);
+            border: 1px solid var(--border-color);
+            padding: 4px;
+            border-radius: 3px;
+            width: 50px;
+        }
+        select { width: 100%; margin-bottom: 10px; }
+        .color-picker-box {
+            width: 40px; height: 20px;
+            border: 1px solid #000;
+            cursor: pointer;
+        }
+        input[type="color"] {
+            padding: 0;
+            border: none;
+            width: 40px;
+            height: 24px;
+            background: none;
+        }
+        button {
+            background-color: var(--accent-color);
+            color: white;
+            border: none;
+            padding: 8px 12px;
+            border-radius: 3px;
+            cursor: pointer;
+            width: 100%;
+            font-weight: bold;
+            margin-top: 10px;
+        }
+        button:hover { background-color: #1a6bca; }
+    </style>
+</head>
+<body>
+
+    <div class="section">
+        <label>Halftone Settings</label>
+        <div class="row">
+            <span>Shape:</span>
+            <select id="halftoneShape">
+                <option value="Round">Round</option>
+                <option value="Line">Line</option>
+                <option value="Ellipse">Ellipse</option>
+            </select>
+        </div>
+        <div class="row">
+            <span>Freq (LPI)</span>
+            <input id="numFrequency" type="number" value="30">
+            <span>Angle (°)</span>
+            <input id="numAngle" type="number" value="33">
+        </div>
+    </div>
+
+    <div class="section">
+        <div class="row">
+            <label><input type="checkbox" id="chkEnableKnockout" checked> Enable Color Knockout</label>
+        </div>
+        <div class="row">
+            <span>Knockout Color</span>
+            <input type="color" id="knockoutColor" value="#000000">
+        </div>
+    </div>
+
+    <div class="section">
+        <label>Levels (Black / Mid / White)</label>
+        <div class="row">
+            <input id="numBlackPoint" type="number" value="0">
+            <input id="numGrayPoint" type="number" value="1.00" step="0.01">
+            <input id="numWhitePoint" type="number" value="255">
+        </div>
+        <label>Output Levels</label>
+        <div class="row">
+            <input id="numOutBlack" type="number" value="0">
+            <input id="numOutWhite" type="number" value="255">
+        </div>
+        <div class="row">
+            <span>Boost Shadows</span>
+            <input id="numShadowBoost" type="number" value="0" style="width:100%">
+        </div>
+    </div>
+
+    <div class="section">
+        <label><input type="checkbox" id="chkDeFringe" checked> De-Fringe Color Edges</label>
+    </div>
+
+    <button id="btnApply">Apply DTF Prep</button>
+
+    <script>
+        function hexToRgb(hex) {
+            let result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+            return result ? {
+                r: parseInt(result[1], 16),
+                g: parseInt(result[2], 16),
+                b: parseInt(result[3], 16)
+            } : { r: 0, g: 0, b: 0 };
+        }
+
+        // Fetch the JSX script from script.js
+        let hostScript = "";
+        fetch("script.js").then(res => res.text()).then(text => hostScript = text);
+
+        document.getElementById("btnApply").addEventListener("click", () => {
+            let koRGB = hexToRgb(document.getElementById("knockoutColor").value);
+            
+            let settings = {
+                enableHalftone: true,
+                halftoneShape: document.getElementById("halftoneShape").value,
+                frequency: parseInt(document.getElementById("numFrequency").value),
+                angle: parseInt(document.getElementById("numAngle").value),
+
+                enableKnockout: document.getElementById("chkEnableKnockout").checked,
+                knockoutR: koRGB.r,
+                knockoutG: koRGB.g,
+                knockoutB: koRGB.b,
+
+                blackPoint: parseInt(document.getElementById("numBlackPoint").value),
+                grayPoint: parseFloat(document.getElementById("numGrayPoint").value),
+                whitePoint: parseInt(document.getElementById("numWhitePoint").value),
+                outBlack: parseInt(document.getElementById("numOutBlack").value),
+                outWhite: parseInt(document.getElementById("numOutWhite").value),
+
+                shadowBoost: parseInt(document.getElementById("numShadowBoost").value),
+                cleanup: "none",
+                defringe: document.getElementById("chkDeFringe").checked
+            };
+
+            let settingsStr = JSON.stringify(settings);
+            
+            // Photopea postMessage execution
+            // We append the function call to the end of the script
+            let finalScript = hostScript + "\nrunDTFPrep('" + settingsStr + "');";
+            
+            window.parent.postMessage(finalScript, "*");
+        });
+    </script>
+</body>
+</html>
