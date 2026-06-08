@@ -91,21 +91,19 @@ function applyShadowBoost(amount) {
     } catch(e) {}
 }
 
-function applyColorKnockout(r, g, b) {
+function doRunDTFPrepAfterKnockout() {
     try {
-        var desc = new ActionDescriptor();
-        desc.putInteger(charIDToTypeID("Fzns"), 40);
-        var colorDesc = new ActionDescriptor();
-        colorDesc.putDouble(charIDToTypeID("Rd  "), r);
-        colorDesc.putDouble(charIDToTypeID("Grn "), g);
-        colorDesc.putDouble(charIDToTypeID("Bl  "), b);
-        desc.putObject(charIDToTypeID("Mnm "), charIDToTypeID("RGBC"), colorDesc);
-        desc.putObject(charIDToTypeID("Mxm "), charIDToTypeID("RGBC"), colorDesc);
-        executeAction(charIDToTypeID("ClrR"), desc, DialogModes.NO);
+        var doc = app.activeDocument;
+        doc.activeLayer.rasterize(RasterizeType.ENTIRELAYER);
+        try {
+            var oldLayer = doc.artLayers.getByName("DTF_OLD_LAYER");
+            oldLayer.remove();
+        } catch(e) {}
         
-        app.activeDocument.selection.clear();
-        app.activeDocument.selection.deselect();
-    } catch(e) {}
+        doRunDTFPrepCore();
+    } catch(e) {
+        app.echoToOE("ERROR in Knockout cleanup: " + e.toString());
+    }
 }
 
 function applyHalftone(shape, freq, angle) {
