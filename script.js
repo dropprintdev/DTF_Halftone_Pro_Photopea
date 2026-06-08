@@ -1,19 +1,18 @@
 var globalSettings;
 
-function runDTFPrep(settingsJsonStr) {
+function doRunDTFPrep() {
     try {
-        globalSettings = eval("(" + settingsJsonStr + ")");
         if (app.documents.length === 0) {
             app.echoToOE("ERROR: Please open an image first!");
             return;
         }
-        app.activeDocument.suspendHistory("DTF Halftone Prep", "doRunDTFPrep()");
+        app.activeDocument.suspendHistory("DTF Halftone Prep", "doRunDTFPrepCore()");
     } catch(e) {
         app.echoToOE("ERROR: " + e.toString());
     }
 }
 
-function doRunDTFPrep() {
+function doRunDTFPrepCore() {
     try {
         var settings = globalSettings;
         var doc = app.activeDocument;
