@@ -165,8 +165,8 @@
             let settingsStr = JSON.stringify(settings);
             
             // Photopea postMessage execution
-            // We append the function call to the end of the script
-            let finalScript = hostScript + "\nrunDTFPrep('" + settingsStr + "');";
+            // We append the settings object directly to the script to bypass eval()
+            let finalScript = hostScript + "\nglobalSettings = " + settingsStr + ";\ndoRunDTFPrep();";
             
             window.parent.postMessage(finalScript, "*");
         });
